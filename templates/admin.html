@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TwoSA — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#f8a4c8;--pkd:#e91e8c;--bg:#fff5f8;--sf:#ffffff;--bd:rgba(248,164,200,0.25);--tx:#3d1a2e;--mt:#b07090}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+header{background:linear-gradient(135deg,#e91e8c,#f8a4c8);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(233,30,140,0.2)}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.admin-badge{background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:3px 12px;font-family:'Space Mono',monospace;font-size:10px;color:#fff;letter-spacing:.06em}
+.hdr-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:.03em}
+.hdr-sub{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,0.7);margin-top:1px}
+.logout-btn{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:#fff;padding:7px 16px;border-radius:10px;font-family:'Space Mono',monospace;font-size:10px;text-decoration:none;transition:background .2s}
+.logout-btn:hover{background:rgba(255,255,255,0.3)}
+.container{max-width:1100px;margin:28px auto;padding:0 24px}
+.section-title{font-family:'Space Mono',monospace;font-size:10px;color:var(--mt);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:18px 20px}
+.stat-icon{font-size:22px;margin-bottom:8px}
+.stat-val{font-size:26px;font-weight:800;color:var(--pkd);line-height:1}
+.stat-lbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--mt);letter-spacing:.08em;margin-top:4px}
+.stat-sub{font-size:11px;color:var(--mt);margin-top:2px}
+
+/* GRID 2 COL */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:20px}
+.panel-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-family:'Space Mono',monospace;font-size:9px;color:var(--mt);letter-spacing:.08em;padding:6px 10px;text-align:left;border-bottom:1px solid var(--bd)}
+td{padding:9px 10px;border-bottom:1px solid rgba(248,164,200,0.12);vertical-align:top;color:var(--tx);font-size:12px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(248,164,200,0.04)}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-family:'Space Mono',monospace}
+.badge-cloud{background:#e3f2fd;color:#1565c0}
+.badge-cache{background:#e8f5e9;color:#2e7d32}
+.badge-deg{background:#fff3e0;color:#e65100}
+.badge-admin{background:rgba(233,30,140,0.1);color:#e91e8c;border:1px solid rgba(233,30,140,0.2)}
+.badge-user{background:rgba(248,164,200,0.15);color:#b07090}
+.stress-h{color:#c62828;font-weight:700}
+.stress-m{color:#e65100}
+.stress-l{color:#1565c0}
+.stress-n{color:#2e7d32}
+
+/* USERS TABLE full width */
+.full-panel{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-bottom:28px}
+
+/* ACTION BTNS */
+.action-btn{background:rgba(233,30,140,0.08);border:1px solid rgba(233,30,140,0.2);color:#e91e8c;padding:4px 10px;border-radius:8px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;text-decoration:none;transition:background .2s}
+.action-btn:hover{background:rgba(233,30,140,0.15)}
+
+/* CACHE BAR */
+.cache-bar-wrap{margin-top:8px}
+.cache-bar{height:8px;border-radius:4px;background:rgba(248,164,200,0.15);overflow:hidden;margin:4px 0}
+.cache-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#e91e8c,#f8a4c8)}
+.cache-lbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--mt);display:flex;justify-content:space-between}
+
+/* STRESS CHART */
+.stress-chart{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.stress-row{display:flex;align-items:center;gap:10px}
+.stress-label{font-family:'Space Mono',monospace;font-size:10px;min-width:60px;color:var(--mt)}
+.stress-track{flex:1;height:6px;border-radius:3px;background:rgba(248,164,200,0.1);overflow:hidden}
+.stress-fill{height:100%;border-radius:3px}
+.stress-count{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);min-width:24px;text-align:right}
+
+/* LATENCY METER */
+.latency-big{font-size:36px;font-weight:800;color:var(--pkd);line-height:1;margin:8px 0}
+.latency-sub{font-family:'Space Mono',monospace;font-size:9px;color:var(--mt)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr-left">
+    <div>
+      <div class="hdr-title">TwoSA &mdash; Dashboard Admin</div>
+
+    </div>
+    <span class="admin-badge">ADMIN</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,0.8)">{{ username }}</span>
+    <a href="/logout" class="logout-btn">DÉCONNEXION</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STATS RAPIDES -->
+  <div class="section-title" style="margin-top:8px">Vue d'ensemble du système</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💬</div>
+      <div class="stat-val">{{ stats.total_queries }}</div>
+      <div class="stat-lbl">QUESTIONS TOTAL</div>
+      <div class="stat-sub">depuis le démarrage</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-val">{{ stats.avg_latency_ms }} ms</div>
+      <div class="stat-lbl">LATENCE MOYENNE</div>
+      <div class="stat-sub">cible : &lt; 200ms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🗄️</div>
+      <div class="stat-val">{{ stats.cache_entries }}</div>
+      <div class="stat-lbl">ENTRÉES CACHE</div>
+      <div class="stat-sub">réponses en cache Edge</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-val">{{ stats.total_users }}</div>
+      <div class="stat-lbl">UTILISATEURS</div>
+      <div class="stat-sub">comptes enregistrés</div>
+    </div>
+  </div>
+
+  <!-- PANELS -->
+  <div class="grid2">
+
+    <!-- Répartition sources -->
+    <div class="panel">
+      <div class="panel-title">📡 Répartition des sources</div>
+      <div class="cache-bar-wrap">
+        <div class="cache-lbl"><span>Cache Edge</span><span>{{ stats.pct_cache }}%</span></div>
+        <div class="cache-bar"><div class="cache-fill" style="width:{{ stats.pct_cache }}%"></div></div>
+        <div class="cache-lbl" style="margin-top:6px"><span>Cloud Groq</span><span>{{ stats.pct_cloud }}%</span></div>
+        <div class="cache-bar"><div class="cache-fill" style="width:{{ stats.pct_cloud }}%;background:linear-gradient(90deg,#1565c0,#90caf9)"></div></div>
+        <div class="cache-lbl" style="margin-top:6px"><span>Mode dégradé</span><span>{{ stats.pct_deg }}%</span></div>
+        <div class="cache-bar"><div class="cache-fill" style="width:{{ stats.pct_deg }}%;background:linear-gradient(90deg,#e65100,#ffcc80)"></div></div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="latency-big">{{ stats.avg_latency_ms }}<span style="font-size:16px;font-weight:400;color:var(--mt)"> ms</span></div>
+        <div class="latency-sub">LATENCE MOYENNE CLOUD</div>
+      </div>
+    </div>
+
+    <!-- Stress -->
+    <div class="panel">
+      <div class="panel-title">🧠 Analyse émotionnelle</div>
+      <div class="stress-chart">
+        <div class="stress-row">
+          <span class="stress-label">Élevé</span>
+          <div class="stress-track"><div class="stress-fill" style="width:{{ stress_pct.high }}%;background:#ef5350"></div></div>
+          <span class="stress-count">{{ stress_dist.high|default(0) }}</span>
+        </div>
+        <div class="stress-row">
+          <span class="stress-label">Moyen</span>
+          <div class="stress-track"><div class="stress-fill" style="width:{{ stress_pct.medium }}%;background:#ffa726"></div></div>
+          <span class="stress-count">{{ stress_dist.medium|default(0) }}</span>
+        </div>
+        <div class="stress-row">
+          <span class="stress-label">Faible</span>
+          <div class="stress-track"><div class="stress-fill" style="width:{{ stress_pct.low }}%;background:#42a5f5"></div></div>
+          <span class="stress-count">{{ stress_dist.low|default(0) }}</span>
+        </div>
+        <div class="stress-row">
+          <span class="stress-label">Aucun</span>
+          <div class="stress-track"><div class="stress-fill" style="width:{{ stress_pct.none }}%;background:#66bb6a"></div></div>
+          <span class="stress-count">{{ stress_dist.none|default(0) }}</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--mt)">
+        Mode dégradé activé : <strong style="color:var(--pkd)">{{ stats.degraded_count }}x</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LISTE UTILISATEURS -->
+  <div class="section-title">Gestion des utilisateurs</div>
+  <div class="full-panel">
+    <table>
+      <thead>
+        <tr>
+          <th>UTILISATEUR</th>
+          <th>RÔLE</th>
+          <th>CRÉÉ LE</th>
+          <th>DERNIÈRE CONNEXION</th>
+          <th>QUESTIONS POSÉES</th>
+          <th>ACTION</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>
+            {% if u.is_admin %}
+              <span class="badge badge-admin">ADMIN</span>
+            {% else %}
+              <span class="badge badge-user">Étudiant</span>
+            {% endif %}
+          </td>
+          <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--mt)">{{ u.created_at[:16] if u.created_at else '—' }}</td>
+          <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--mt)">{{ u.last_login[:16] if u.last_login else 'Jamais' }}</td>
+          <td style="font-weight:700;color:var(--pkd)">{{ u.question_count }}</td>
+          <td>
+            {% if not u.is_admin %}
+              <a href="/admin/delete/{{ u.id }}" class="action-btn" onclick="return confirm('Supprimer cet utilisateur ?')">Supprimer</a>
+            {% else %}
+              <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--mt)">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DERNIÈRES CONVERSATIONS -->
+  <div class="section-title">Dernières conversations (toutes sessions)</div>
+  <div class="full-panel">
+    <table>
+      <thead>
+        <tr><th>MESSAGE</th><th>RÔLE</th><th>SOURCE</th><th>LATENCE</th><th>STRESS</th><th>DATE</th></tr>
+      </thead>
+      <tbody>
+        {% for c in conversations %}
+        <tr>
+          <td style="max-width:280px">{{ c.message[:80] }}{% if c.message|length > 80 %}…{% endif %}</td>
+          <td><span class="badge {% if c.role == 'user' %}badge-user{% else %}badge-cache{% endif %}">{{ c.role }}</span></td>
+          <td>
+            {% if c.source == 'edge_cache' %}<span class="badge badge-cache">Cache</span>
+            {% elif c.source == 'cloud_groq' %}<span class="badge badge-cloud">Cloud</span>
+            {% else %}<span class="badge badge-deg">Dégradé</span>{% endif %}
+          </td>
+          <td style="font-family:'Space Mono',monospace;font-size:10px">{{ c.latency_ms }} ms</td>
+          <td class="stress-{{ c.stress_level }}">{{ c.stress_level }}</td>
+          <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--mt)">{{ c.timestamp[:16] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

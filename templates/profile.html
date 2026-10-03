@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - TwoSA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f7f6fb; color: #212121; }
+        header { background: #2f2d56; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+        .back-btn { color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.24); padding: 8px 14px; border-radius: 10px; font-size: 13px; }
+        .container { max-width: 900px; margin: 30px auto; padding: 0 24px; }
+        .profile-card { background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(30, 30, 60, 0.1); overflow: hidden; }
+        .profile-hero { background: linear-gradient(135deg, #8e44ad, #f06292); color: white; padding: 28px 30px; }
+        .profile-hero h1 { font-size: 28px; margin-bottom: 8px; }
+        .profile-hero p { font-size: 14px; opacity: 0.9; }
+        .profile-body { padding: 28px 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+        .info-block { background: #f6f3ff; border-radius: 18px; padding: 20px; }
+        .info-block h2 { font-size: 18px; margin-bottom: 10px; color: #3f2d5d; }
+        .info-block p { font-size: 14px; color: #555; line-height: 1.6; }
+        .stat-badge { display: inline-block; margin-top: 16px; padding: 12px 18px; border-radius: 16px; background: #fff; border: 1px solid rgba(142, 68, 173, 0.15); font-size: 18px; font-weight: 700; color: #8e44ad; }
+        .password-block { grid-column: 1 / -1; }
+        .form-row { display: flex; flex-direction: column; margin-bottom: 14px; }
+        .form-row label { font-size: 12px; margin-bottom: 6px; color: #6f5b82; }
+        .form-row input { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid #d9d5e8; background: white; color: #2f2d3c; font-size: 14px; }
+        .pw-meter { width: 100%; height: 10px; background: #ebe9f5; border-radius: 999px; margin-bottom: 8px; }
+        .pw-meter-bar { height: 100%; width: 0%; border-radius: 999px; transition: width .25s ease; background: linear-gradient(90deg, #e91e63, #7c4dff); }
+        .pw-hint { font-size: 12px; color: #7a6a95; margin-bottom: 16px; }
+        .alert { border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; font-size: 13px; }
+        .alert.success { background: #ebf7ed; border: 1px solid #b8e6c7; color: #256127; }
+        .alert.error { background: #fdebee; border: 1px solid #f3c2c2; color: #9f2d34; }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/" class="back-btn">← Retour</a>
+    <h1>Mon profil</h1>
+    <a href="/logout" class="back-btn">Se déconnecter</a>
+</header>
+<div class="container">
+    <div class="profile-card">
+        <div class="profile-hero">
+            <h1>{{ username }}</h1>
+            <p>Voici un aperçu de votre profil sur TwoSA.</p>
+        </div>
+        <div class="profile-body">
+            <div class="info-block">
+                <h2>Nom d'utilisateur</h2>
+                <p>{{ username }}</p>
+            </div>
+            <div class="info-block">
+                <h2>Date d'inscription</h2>
+                <p>{{ created_at or 'Non renseignée' }}</p>
+            </div>
+            <div class="info-block">
+                <h2>Messages enregistrés</h2>
+                <p>Conversations envoyées et reçues pendant vos sessions.</p>
+                <span class="stat-badge">{{ total_messages }}</span>
+            </div>
+            <div class="info-block password-block">
+                <h2>Changer de mot de passe</h2>
+                {% if message %}
+                <div class="alert {{ message_type }}">{{ message }}</div>
+                {% endif %}
+                <form action="/profile" method="post">
+                    <div class="form-row">
+                        <label for="old_password">Mot de passe actuel</label>
+                        <input type="password" id="old_password" name="old_password" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="new_password">Nouveau mot de passe</label>
+                        <input type="password" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="confirm_password">Confirmer le mot de passe</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <div class="pw-meter">
+                        <div class="pw-meter-bar" id="pw-strength"></div>
+                    </div>
+                    <div class="pw-hint" id="pw-hint">Force du mot de passe : faible</div>
+                    <button type="submit" class="submit-btn">Mettre à jour mon mot de passe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const passwordField = document.getElementById('new_password');
+const strengthBar = document.getElementById('pw-strength');
+const strengthHint = document.getElementById('pw-hint');
+
+function updateStrength(value) {
+    let score = 0;
+    if (value.length >= 8) score += 1;
+    if (/[A-Z]/.test(value)) score += 1;
+    if (/[a-z]/.test(value)) score += 1;
+    if (/[0-9]/.test(value)) score += 1;
+    if (/[^A-Za-z0-9]/.test(value)) score += 1;
+    const labels = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'];
+    strengthBar.style.width = `${score * 20}%`;
+    strengthHint.textContent = `Force du mot de passe : ${labels[Math.min(score, 4)]}`;
+    strengthBar.dataset.level = labels[Math.min(score, 4)].toLowerCase().replace(/\s+/g, '-');
+}
+
+passwordField?.addEventListener('input', (event) => {
+    updateStrength(event.target.value);
+});
+</script>
+</body>
+</html>

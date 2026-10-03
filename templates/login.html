@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TwoSA — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #f8a4c8;
+  --primary-dark: #e91e8c;
+  --primary-light: #fce4ec;
+  --bg: #fff5f8;
+  --surface: #ffffff;
+  --border: rgba(248,164,200,0.35);
+  --text: #3d1a2e;
+  --muted: #b07090;
+}
+body.theme-violet { --primary:#b39ddb; --primary-dark:#7c4dff; --primary-light:#ede7f6; --bg:#0d0a0f; --surface:#160f18; --border:rgba(179,157,219,0.18); --text:#f3e5f5; --muted:#9e7d9a; }
+body.theme-menthe { --primary:#80cbc4; --primary-dark:#00897b; --primary-light:#e0f2f1; --bg:#f0faf9; --surface:#ffffff; --border:rgba(128,203,196,0.35); --text:#1a3d38; --muted:#6aaa9e; }
+body.theme-dore   { --primary:#d4a847; --primary-dark:#b8860b; --primary-light:#fdf8e1; --bg:#faf6ee; --surface:#fffdf5; --border:rgba(212,168,71,0.35); --text:#3d2e0a; --muted:#a08040; }
+body.theme-bleu   { --primary:#90caf9; --primary-dark:#1565c0; --primary-light:#e3f2fd; --bg:#0a0f1e; --surface:#0f1828; --border:rgba(144,202,249,0.18); --text:#e3f2fd; --muted:#6090b0; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow-x: hidden;
+  transition: background .4s, color .4s;
+}
+
+/* GRID BG */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(248,164,200,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(248,164,200,0.06) 1px, transparent 1px);
+  background-size: 36px 36px;
+  pointer-events: none;
+  z-index: 0;
+}
+.orb1 { position: fixed; width: 350px; height: 350px; border-radius: 50%; background: color-mix(in srgb, var(--primary-dark) 15%, transparent); filter: blur(80px); top: -80px; right: -60px; pointer-events: none; z-index: 0; transition: background .4s; }
+.orb2 { position: fixed; width: 250px; height: 250px; border-radius: 50%; background: color-mix(in srgb, var(--primary) 10%, transparent); filter: blur(60px); bottom: 60px; left: -40px; pointer-events: none; z-index: 0; transition: background .4s; }
+
+/* STATS SIDEBAR — visible sur grands écrans */
+.stats-panel {
+  position: fixed;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 180px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: background .4s, border-color .4s;
+}
+.stat-card .s-icon { font-size: 20px; margin-bottom: 6px; }
+.stat-card .s-val { font-size: 22px; font-weight: 800; color: var(--primary-dark); line-height: 1; }
+.stat-card .s-lbl { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .08em; margin-top: 4px; }
+.stat-card .s-bar { height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--primary) 20%, transparent); margin-top: 8px; overflow: hidden; }
+.stat-card .s-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--primary-dark), var(--primary)); transition: width 1.2s ease; }
+
+/* BADGE EDGE */
+.edge-badge {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 7px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .08em;
+}
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4caf50;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.3); }
+}
+
+/* THEME PICKER */
+.theme-picker {
+  position: fixed; top: 16px; right: 16px;
+  display: flex; gap: 8px; z-index: 100;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 6px 10px;
+  align-items: center;
+}
+.theme-picker label { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .08em; margin-right: 4px; }
+.tc { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .2s, border-color .2s; }
+.tc:hover, .tc.active { transform: scale(1.2); border-color: var(--text); }
+.tc-rose   { background: linear-gradient(135deg, #f8a4c8, #fff5f8); }
+.tc-violet { background: linear-gradient(135deg, #7c4dff, #160f18); }
+.tc-menthe { background: linear-gradient(135deg, #00897b, #e0f2f1); }
+.tc-dore   { background: linear-gradient(135deg, #d4a847, #fdf8e1); }
+.tc-bleu   { background: linear-gradient(135deg, #1565c0, #0a0f1e); }
+
+/* MAIN LAYOUT */
+.page-wrap {
+  position: relative; z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 80px 20px 60px; /* top: laisse place au theme picker; bottom: laisse place au badge */
+}
+
+/* CARD */
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  transition: background .4s, border-color .4s;
+  /* ✅ overflow visible pour que le bouton ne soit pas coupé */
+  overflow: visible;
+}
+
+.logo-wrap { text-align: center; margin-bottom: 24px; }
+.robot-svg { display: block; margin: 0 auto 12px; }
+.brand-name { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: 0.06em; }
+.brand-sub { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.12em; margin-top: 3px; }
+
+.tabs { display: flex; gap: 0; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 700; cursor: pointer; background: transparent; color: var(--muted); border: none; font-family: 'Syne', sans-serif; transition: all .2s; }
+.tab.active { background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); }
+
+.form { display: none; flex-direction: column; gap: 12px; }
+.form.active { display: flex; }
+
+label { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); letter-spacing: .08em; margin-bottom: 4px; display: block; }
+
+input[type=text], input[type=password] {
+  width: 100%;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: 'Syne', sans-serif;
+  outline: none;
+  transition: border .2s;
+}
+input:focus { border-color: color-mix(in srgb, var(--primary) 70%, transparent); }
+
+.pwd-bar-wrap { margin-top: 4px; }
+.pwd-bar { height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--primary) 15%, transparent); overflow: hidden; }
+.pwd-fill { height: 100%; border-radius: 2px; width: 0%; transition: all .3s; }
+.pwd-hint { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: 'Space Mono', monospace; min-height: 14px; }
+
+.rules { background: color-mix(in srgb, var(--primary) 6%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent); border-radius: 8px; padding: 10px 12px; }
+.rule { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; transition: color .2s; }
+.rule.ok { color: #4caf50 !important; }
+.rule.fail { color: #ef9a9a !important; }
+.rule-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background .2s; }
+.rule.ok .rule-dot { background: #81c784; }
+.rule.fail .rule-dot { background: #ef9a9a; }
+
+/* ✅ BOUTON BIEN VISIBLE — padding généreux, jamais coupé */
+.submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: opacity .2s, transform .1s;
+  margin-top: 8px;
+  /* ✅ flex-shrink:0 pour ne jamais être compressé */
+  flex-shrink: 0;
+  display: block;
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--primary-dark) 35%, transparent);
+}
+.submit-btn:hover { opacity: .88; transform: translateY(-1px); }
+.submit-btn:active { transform: translateY(0); }
+
+.error-msg { background: rgba(233,30,60,0.1); border: 1px solid rgba(233,30,60,0.3); color: #ef9a9a; border-radius: 8px; padding: 10px 12px; font-size: 12px; font-family: 'Space Mono', monospace; }
+  .success-msg { background: rgba(96,165,250,0.12); border: 1px solid rgba(59,130,246,0.35); color: #1e40af; border-radius: 8px; padding: 10px 12px; font-size: 12px; font-family: 'Space Mono', monospace; }
+
+/* FEATURES STRIP — en dessous de la card sur petits écrans */
+.features-strip {
+  display: none;
+  gap: 8px;
+  margin-top: 16px;
+  width: 100%;
+  max-width: 420px;
+}
+.feat {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.feat .f-icon { font-size: 18px; }
+.feat .f-lbl { font-family: 'Space Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px; letter-spacing: .06em; }
+
+/* RESPONSIVE */
+@media (min-width: 900px) {
+  .stats-panel { display: flex; }
+  .features-strip { display: none !important; }
+}
+@media (max-width: 899px) {
+  .stats-panel { display: none; }
+  .features-strip { display: flex; }
+  .page-wrap { flex-direction: column; align-items: center; }
+}
+@media (max-width: 480px) {
+  .card { padding: 24px 16px 20px; border-radius: 16px; }
+  .brand-name { font-size: 22px; }
+}
+</style>
+</head>
+<body class="theme-rose">
+<div class="orb1"></div>
+<div class="orb2"></div>
+
+<!-- THEME PICKER -->
+<div class="theme-picker">
+  <label>THÈME</label>
+  <div class="tc tc-rose active"   title="Rose bébé"   onclick="setTheme('rose',this)"></div>
+  <div class="tc tc-violet"        title="Violet nuit"  onclick="setTheme('violet',this)"></div>
+  <div class="tc tc-menthe"        title="Vert menthe"  onclick="setTheme('menthe',this)"></div>
+  <div class="tc tc-dore"          title="Doré & Beige" onclick="setTheme('dore',this)"></div>
+  <div class="tc tc-bleu"          title="Bleu nuit"    onclick="setTheme('bleu',this)"></div>
+</div>
+
+
+<!-- MAIN CONTENT -->
+<div class="page-wrap">
+  <div class="card">
+    <div class="logo-wrap">
+      <svg class="robot-svg" width="76" height="86" viewBox="0 0 80 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="38" y="2" width="4" height="10" rx="2" fill="var(--primary)"/>
+        <circle cx="40" cy="2" r="3" fill="var(--primary-dark)"/>
+        <rect x="16" y="10" width="48" height="38" rx="14" fill="var(--surface)" stroke="var(--primary)" stroke-width="1.5"/>
+        <rect x="20" y="14" width="40" height="30" rx="10" fill="var(--bg)"/>
+        <rect x="25" y="22" width="12" height="6" rx="3" fill="var(--primary)" opacity=".9"/>
+        <rect x="43" y="22" width="12" height="6" rx="3" fill="var(--primary)" opacity=".9"/>
+        <path d="M28 34 Q40 42 52 34" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <rect x="8" y="20" width="9" height="14" rx="4" fill="var(--primary-dark)" opacity=".7"/>
+        <rect x="63" y="20" width="9" height="14" rx="4" fill="var(--primary-dark)" opacity=".7"/>
+        <ellipse cx="40" cy="68" rx="22" ry="18" fill="var(--surface)" stroke="var(--primary)" stroke-width="1.2"/>
+        <rect x="32" y="52" width="16" height="4" rx="2" fill="var(--primary-dark)" opacity=".6"/>
+        <ellipse cx="14" cy="66" rx="6" ry="10" fill="var(--primary)" opacity=".5" transform="rotate(-15 14 66)"/>
+        <ellipse cx="66" cy="66" rx="6" ry="10" fill="var(--primary)" opacity=".5" transform="rotate(15 66 66)"/>
+        <ellipse cx="40" cy="84" rx="18" ry="5" fill="var(--primary)" opacity=".15"/>
+      </svg>
+      <div class="brand-name">TwoSA</div>
+      
+    </div>
+
+    {% if error %}
+    <div class="error-msg" style="margin-bottom:14px">⚠ {{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success-msg" style="margin-bottom:14px">✔ {{ success }}</div>
+    {% endif %}
+
+    <div class="tabs">
+      <button class="tab active" id="tab-login" onclick="switchTab('login')">Connexion</button>
+      <button class="tab" id="tab-reg" onclick="switchTab('register')">Créer un compte</button>
+    </div>
+
+    <!-- FORM LOGIN -->
+    <form class="form active" id="form-login" method="POST">
+      <input type="hidden" name="action" value="login">
+      <div>
+        <label>NOM D'UTILISATEUR</label>
+        <input type="text" name="username" placeholder="ex : etudiant_ensa" required autocomplete="username">
+      </div>
+      <div>
+        <label>MOT DE PASSE</label>
+        <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <!-- ✅ Bouton toujours visible en bas du formulaire -->
+      <button type="submit" class="submit-btn">Se connecter →</button>
+    </form>
+
+    <!-- FORM REGISTER -->
+    <form class="form" id="form-reg" method="POST">
+      <input type="hidden" name="action" value="register">
+      <div>
+        <label>NOM D'UTILISATEUR</label>
+        <input type="text" name="username" placeholder="ex : etudiant_ensa" required autocomplete="username">
+      </div>
+      <div>
+        <label>MOT DE PASSE</label>
+        <input type="password" name="password" id="pwd-input" placeholder="••••••••" required autocomplete="new-password" oninput="checkPwd(this.value)">
+        <div class="pwd-bar-wrap">
+          <div class="pwd-bar"><div class="pwd-fill" id="pwd-fill"></div></div>
+          <div class="pwd-hint" id="pwd-hint">Entrez un mot de passe</div>
+        </div>
+      </div>
+      <div class="rules">
+        <div class="rule" id="r-len"><span class="rule-dot"></span>8 caractères minimum</div>
+        <div class="rule" id="r-up"><span class="rule-dot"></span>1 majuscule (A–Z)</div>
+        <div class="rule" id="r-low"><span class="rule-dot"></span>1 minuscule (a–z)</div>
+        <div class="rule" id="r-num"><span class="rule-dot"></span>1 chiffre (0–9)</div>
+        <div class="rule" id="r-spec"><span class="rule-dot"></span>1 caractère spécial (!@#$...)</div>
+      </div>
+      <div>
+        <label>CONFIRMER LE MOT DE PASSE</label>
+        <input type="password" name="confirm" placeholder="••••••••" required autocomplete="new-password">
+      </div>
+      <!-- ✅ Bouton toujours visible -->
+      <button type="submit" class="submit-btn">Créer mon compte →</button>
+    </form>
+
+    <div class="footer-note">🔒 DONNÉES STOCKÉES LOCALEMENT · RGPD CONFORME</div>
+  </div>
+
+  <!-- FEATURES STRIP (petits écrans uniquement) -->
+  <div class="features-strip">
+    <div class="feat"><div class="f-icon">⚡</div><div class="f-lbl">EDGE &lt;200MS</div></div>
+    <div class="feat"><div class="f-icon">🧠</div><div class="f-lbl">CACHE IA</div></div>
+    <div class="feat"><div class="f-icon">🛡️</div><div class="f-lbl">RGPD</div></div>
+    <div class="feat"><div class="f-icon">📴</div><div class="f-lbl">MODE DÉGRADÉ</div></div>
+  </div>
+</div>
+
+<!-- BADGE EDGE EN BAS -->
+<div class="edge-badge">
+  <div class="pulse-dot"></div>
+  EDGE NODE · ENSA-BM-01 · ACTIF
+</div>
+
+<script>
+// Theme persistence
+const saved = localStorage.getItem('twosa-theme') || 'rose';
+setTheme(saved, document.querySelector('.tc-' + saved));
+
+function setTheme(name, el) {
+  document.body.className = 'theme-' + name;
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  localStorage.setItem('twosa-theme', name);
+}
+
+function switchTab(t) {
+  document.getElementById('form-login').classList.toggle('active', t === 'login');
+  document.getElementById('form-reg').classList.toggle('active', t === 'register');
+  document.getElementById('tab-login').classList.toggle('active', t === 'login');
+  document.getElementById('tab-reg').classList.toggle('active', t === 'register');
+}
+
+function checkPwd(v) {
+  const rules = {
+    'r-len': v.length >= 8,
+    'r-up':  /[A-Z]/.test(v),
+    'r-low': /[a-z]/.test(v),
+    'r-num': /\d/.test(v),
+    'r-spec':/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(v)
+  };
+  let score = 0;
+  for (const [id, ok] of Object.entries(rules)) {
+    const el = document.getElementById(id);
+    el.classList.toggle('ok', ok);
+    el.classList.toggle('fail', v.length > 0 && !ok);
+    if (ok) score++;
+  }
+  const fill = document.getElementById('pwd-fill');
+  const hint = document.getElementById('pwd-hint');
+  const pct = (score / 5) * 100;
+  fill.style.width = pct + '%';
+  const colors = ['#ef5350','#ff7043','#ffa726','#66bb6a','#00897b'];
+  const labels = ['Très faible','Faible','Moyen','Fort','Très fort ✓'];
+  if (v.length > 0) {
+    fill.style.background = colors[score-1] || colors[0];
+    hint.textContent = labels[score-1] || labels[0];
+    hint.style.color = colors[score-1] || colors[0];
+  } else {
+    fill.style.width = '0%';
+    hint.textContent = 'Entrez un mot de passe';
+    hint.style.color = '';
+  }
+}
+
+// Simulation stats en temps réel (cosmétique)
+function animateStats() {
+  const latence = Math.floor(Math.random() * 20 + 8);
+  const cache = Math.floor(Math.random() * 10 + 82);
+  document.getElementById('stat-latence').textContent = latence + 'ms';
+  document.getElementById('fill-latence').style.width = Math.max(0, 100 - latence * 2) + '%';
+  document.getElementById('stat-cache').textContent = cache + '%';
+  document.getElementById('fill-cache').style.width = cache + '%';
+}
+setInterval(animateStats, 3000);
+{% if success %}
+<script>switchTab('login');</script>
+{% endif %}
+</script>
+</body>
+</html>

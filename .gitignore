@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Base de données locale (comptes et conversations)
+*.db
+*.sqlite
+
+# Environnement virtuel et caches
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Sauvegardes et éditeurs
+cop
+.vs/
+.vscode/
+.idea/
